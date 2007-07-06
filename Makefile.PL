@@ -10,6 +10,12 @@ WriteMakefile(
     PL_FILES            => {},
     PREREQ_PM => {
         'Test::More' => 0,
+        'PadWalker' => 0,
+        'Devel::REPL' => 0,
+        'Moose' => 0,
+        'Moose::Role' => 0,
+        'namespace::clean' => 0,
+        'Lexical::Persistence' => 0,
     },
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean               => { FILES => 'Carp-REPL-*' },
