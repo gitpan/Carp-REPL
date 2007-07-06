@@ -1,5 +1,9 @@
 Revision history for Carp-REPL
 
+0.03    Fri Jul  6 14:17:46 2007
+        Add ability to move up and down the stack (:u and :d).
+        Moose startup penalty now only paid if you get a REPL.
+
 0.02    Fri Jul  6 01:04:33 2007
         Add the somewhat bloaty dependencies to Makefile.PL.
 

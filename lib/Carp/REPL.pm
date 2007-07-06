@@ -1,15 +1,11 @@
 package Carp::REPL;
 use strict;
 use warnings;
-use PadWalker qw(peek_my peek_our);
-use Devel::REPL;
 
 # so the LexEnvCarp plugin can see what the current environment looks like
-# it's a dirty hack but it will suffice for 0.01 :)
-our %environment;
-
-# in which package did the explosion occur?
-our $package;
+# it's ugly but it looks like it's sticking around
+our @environments;
+our @packages;
 
 sub import
 {
@@ -22,11 +18,11 @@ Carp::REPL - read-eval-print-loop on die
 
 =head1 VERSION
 
-Version 0.02
+Version 0.03
 
 =cut
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 =head1 SYNOPSIS
 
@@ -38,8 +34,9 @@ The intended way to use this module is through the command line.
     perl -MCarp::REPL tps-report.pl
         Can't call method "cover_sheet" without a package or object reference at tps-report.pl line 6019.
 
-        $ ($form, $subform)
-        "27B/6" Report::TPS::Subreport=HASH(0x86da61c)
+        $ map {"\n"} $form, $subform
+        27B/6
+        Report::TPS::Subreport=HASH(0x86da61c)
 
 =head1 FUNCTIONS
 
@@ -49,21 +46,60 @@ This module's interface consists of exactly one function: repl. This is
 provided so you may install your own $SIG{__DIE__} handler if you have no
 alternatives.
 
-It takes the same arguments as die, and returns no useful value.
+It takes the same arguments as die, and returns no useful value. In fact, don't
+even depend on it returning at all!
+
+One useful place for calling this manually is if you just want to check the
+state of things without having to throw a fake error.
+
+    use Carp::REPL;
+
+    sub involved_calculation
+    {
+        # ...
+        Carp::REPL::repl;
+        # ...
+    }
 
 =cut
 
 sub repl
 {
-    print @_, "\n"; # tell the user what blew up
-    # TODO stacktrace
+    warn @_, "\n"; # tell the user what blew up
 
-    # capture globals then lexicals
-    %environment = ( %{peek_our(1)}, %{peek_my(1)} );
-    $package = caller(1);
-    $package = 'main' if !defined($package);
+    require PadWalker;
+    require Devel::REPL;
 
-    _canonicalize_environment();
+    @packages = ();
+    @environments = ();
+
+    my $frame = 0;
+    while (1)
+    {
+        my ($package, $file, $line, $subroutine) = caller($frame)
+            or last;
+        $package = 'main' if !defined($package);
+
+        # PadWalker has 0 mean 'current'
+        # caller has 0 mean 'immediate caller'
+        push @environments,
+        {
+            %{PadWalker::peek_our($frame+1)},
+            %{PadWalker::peek_my($frame+1)}
+        };
+
+        push @packages, [$package, $file, $line];
+
+        warn sprintf "%s%d: %s called at %s:%s.\n",
+            $frame == 0 ? '' : '   ',
+            $frame,
+            $subroutine,
+            $file,
+            $line;
+        ++$frame;
+    }
+
+    _canonicalize_environments();
 
     my $repl = Devel::REPL->new;
     $repl->load_plugin('LexEnvCarp');
@@ -73,16 +109,41 @@ sub repl
 # PadWalker aggressively returns references to everything
 # so we try to produce the correct values for each variable
 
-sub _canonicalize_environment
+sub _canonicalize_environments
 {
-    for my $v (values %environment)
+    for my $env (@environments)
     {
-        if (ref($v) eq 'SCALAR' || ref($v) eq 'REF')
+        for my $v (values %$env)
         {
-            $v = $$v;
+            if (ref($v) eq 'SCALAR' || ref($v) eq 'REF')
+            {
+                $v = $$v;
+            }
         }
     }
 }
+
+=head1 COMMANDS
+
+Note that this is not supposed to be a full-fledged debugger. A few commands
+are provided to aid you in finding out what went awry. See Devel::ebug if
+you're looking for a serious debugger.
+
+=over 4
+
+=item * :up
+
+Moves one frame up in the stack.
+
+=item * :down
+
+Moves one frame down in the stack.
+
+=back
+
+=head1 SEE ALSO
+
+L<Devel::REPL|Devel::REPL>, L<Devel::ebug|Devel::ebug>
 
 =head1 AUTHOR
 

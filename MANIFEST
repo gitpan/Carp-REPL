@@ -11,6 +11,9 @@ t/02-lexicals.t
 t/03-subs.t
 t/04-scope.t
 t/05-interact.t
+t/06-remember.t
+t/07-frame.t
+t/99-bug.t
 t/boilerplate.t
 t/pod.t
 t/scripts/01-trivial.pl
@@ -18,3 +21,4 @@ t/scripts/02-lexicals.pl
 t/scripts/03-subs.pl
 t/scripts/04-scope.pl
 t/scripts/05-interact.pl
+t/scripts/07-frame.pl

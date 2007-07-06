@@ -2,12 +2,12 @@ Carp-REPL
 
 Carp::REPL is a drop-in module for getting a REPL (read-eval-print-loop)
 which helps you in examining the state of the world when things blew up.
-Essentially, you just add -MCarp::REPL to your script's invocation. While
-you certainly can "use Carp::REPL" it's probably not the right thing to do.
-If you just need a REPL, check out Devel::REPL which is what this module
-uses.
+Essentially, you just add -MCarp::REPL to your script's invocation. One
+advantage of using Carp::REPL over Devel::REPL is the lexical variables are
+made available, as well as stack manipulation commands.
 
 MAJOR CHANGES
+    0.03: :up and :down for traversing the call stack
     0.01: first version
 
 INSTALLATION
