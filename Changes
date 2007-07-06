@@ -1,5 +1,10 @@
 Revision history for Carp-REPL
 
+0.04    Fri Jul  6 14:57:33 2007
+        Fix annoying global variable issue.
+        But now REPL doesn't have use strict 'vars'.
+        Will be fixed as soon as my Devel::EvalContext patch is applied.
+
 0.03    Fri Jul  6 14:17:46 2007
         Add ability to move up and down the stack (:u and :d).
         Moose startup penalty now only paid if you get a REPL.

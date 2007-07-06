@@ -27,16 +27,11 @@ expect_send('$pi = 31415');
 expect_like(qr/\b31415\b/);
 
 expect_send('call_me_when_you_have_pie()');
+expect_like(qr/\b62830\b/);
 
-TODO:
-{
-    local $TODO = 'I expected this to work!';
-    expect_like(qr/\b62830\b/);
-}
-
-expect_send('$main::pi = 31415');
-expect_like(qr/\b31415\b/);
+expect_send('$main::pi = 314159');
+expect_like(qr/\b314159\b/);
 
 expect_send('call_me_when_you_have_pie()');
-expect_like(qr/\b62830\b/);
+expect_like(qr/\b628318\b/);
 

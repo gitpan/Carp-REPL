@@ -18,11 +18,11 @@ Carp::REPL - read-eval-print-loop on die
 
 =head1 VERSION
 
-Version 0.03
+Version 0.04
 
 =cut
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 =head1 SYNOPSIS
 
@@ -84,7 +84,6 @@ sub repl
         # caller has 0 mean 'immediate caller'
         push @environments,
         {
-            %{PadWalker::peek_our($frame+1)},
             %{PadWalker::peek_my($frame+1)}
         };
 

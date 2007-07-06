@@ -63,12 +63,21 @@ around 'mangle_line' => sub {
     return qq{"Now at $file:$line (frame $frame)."} if $frame_delta != 0;
   }
 
+  my $declarations = join '', map { "my $_;\n" } keys %{$lp->get_context('_')};
+
   # Collate my declarations for all LP context vars then add '';
   # so an empty statement doesn't return anything (with a no warnings
   # to prevent "Useless use ..." warning)
-  return "package $Carp::REPL::packages[$frame][0];\n"
-         .join('', map { "my $_;\n" } keys %{$lp->get_context('_')})
-         .qq{{ no warnings 'void'; ''; }\n}.$line;
+  return << "CODE";
+package $Carp::REPL::packages[$frame][0];
+$declarations
+{
+    no warnings 'void';
+    '';
+}
+no strict 'vars'; # so we can play with the globals
+$line
+CODE
 };
 
 around 'execute' => sub {
@@ -84,11 +93,11 @@ Devel::REPL::Plugin::LexEnvCarp - Devel::REPL plugin for Carp::REPL
 
 =head1 VERSION
 
-Version 0.03
+Version 0.04
 
 =cut
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 =head1 SYNOPSIS
 

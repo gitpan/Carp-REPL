@@ -64,5 +64,5 @@ expect_send(':u');
 expect_like(qr{\bNow at t/scripts/07-frame\.pl:9 \(frame 1\)\.});
 
 expect_send('$m');
-expect_like(qr/\brequires explicit package name\b/);
+expect_like(qr/^\s*\$m\s*$/m);
 
