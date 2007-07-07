@@ -20,6 +20,14 @@ has 'frame' => (
   default => sub { 0 },
 );
 
+around 'read' => sub {
+    my $orig = shift;
+
+    my $line = $orig->(@_);
+    return if $line =~ /^\s*:q(?:uit)?\s*$/;
+    return $line;
+};
+
 around 'mangle_line' => sub {
   my $orig = shift;
   my ($self, @rest) = @_;
@@ -32,6 +40,12 @@ around 'mangle_line' => sub {
   {
     $lp = $self->lexical_environment(Lexical::Persistence->new);
     $frame_delta = 0;
+  }
+
+  if ($line =~ /^:b?t$/i)
+  {
+    print $Carp::REPL::backtrace;
+    return '';
   }
 
   if ($line =~ /^:up?$/i)
@@ -93,11 +107,11 @@ Devel::REPL::Plugin::LexEnvCarp - Devel::REPL plugin for Carp::REPL
 
 =head1 VERSION
 
-Version 0.04
+Version 0.05
 
 =cut
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 =head1 SYNOPSIS
 

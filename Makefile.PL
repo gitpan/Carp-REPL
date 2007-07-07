@@ -10,6 +10,7 @@ WriteMakefile(
     PL_FILES            => {},
     PREREQ_PM => {
         'Test::More' => 0,
+        'Test::Expect' => 0,
         'PadWalker' => 0,
         'Devel::REPL' => 0,
         'Moose' => 0,

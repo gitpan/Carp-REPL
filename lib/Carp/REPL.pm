@@ -6,6 +6,7 @@ use warnings;
 # it's ugly but it looks like it's sticking around
 our @environments;
 our @packages;
+our $backtrace;
 
 sub import
 {
@@ -18,11 +19,11 @@ Carp::REPL - read-eval-print-loop on die
 
 =head1 VERSION
 
-Version 0.04
+Version 0.05
 
 =cut
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 =head1 SYNOPSIS
 
@@ -34,7 +35,7 @@ The intended way to use this module is through the command line.
     perl -MCarp::REPL tps-report.pl
         Can't call method "cover_sheet" without a package or object reference at tps-report.pl line 6019.
 
-        $ map {"\n"} $form, $subform
+        $ map {"$_\n"} $form, $subform
         27B/6
         Report::TPS::Subreport=HASH(0x86da61c)
 
@@ -72,6 +73,7 @@ sub repl
 
     @packages = ();
     @environments = ();
+    $backtrace = '';
 
     my $frame = 0;
     while (1)
@@ -80,16 +82,20 @@ sub repl
             or last;
         $package = 'main' if !defined($package);
 
-        # PadWalker has 0 mean 'current'
-        # caller has 0 mean 'immediate caller'
-        push @environments,
+        eval
         {
-            %{PadWalker::peek_my($frame+1)}
+            # PadWalker has 0 mean 'current'
+            # caller has 0 mean 'immediate caller'
+            push @environments,
+            {
+                %{PadWalker::peek_my($frame+1)}
+            };
         };
+        Carp::carp($@), last if $@;
 
         push @packages, [$package, $file, $line];
 
-        warn sprintf "%s%d: %s called at %s:%s.\n",
+        $backtrace .= sprintf "%s%d: %s called at %s:%s.\n",
             $frame == 0 ? '' : '   ',
             $frame,
             $subroutine,
@@ -98,10 +104,15 @@ sub repl
         ++$frame;
     }
 
+    warn $backtrace;
+
     _canonicalize_environments();
 
     my $repl = Devel::REPL->new;
-    $repl->load_plugin('LexEnvCarp');
+    for (qw(LexEnvCarp History))
+    {
+        $repl->load_plugin($_);
+    }
     $repl->run;
 }
 
@@ -130,13 +141,21 @@ you're looking for a serious debugger.
 
 =over 4
 
-=item * :up
+=item * :u
 
 Moves one frame up in the stack.
 
-=item * :down
+=item * :d
 
 Moves one frame down in the stack.
+
+=item * :t
+
+Redisplay the stack trace.
+
+=item * :q
+
+Close the REPL. (^D also works)
 
 =back
 

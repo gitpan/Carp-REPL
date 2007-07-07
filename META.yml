@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:                Carp-REPL
-version:             0.04
+version:             0.05
 abstract:            read-eval-print-loop on die
 license:             ~
 generated_by:        ExtUtils::MakeMaker version 6.32
@@ -12,6 +12,7 @@ requires:
     Moose::Role:                   0
     namespace::clean:              0
     PadWalker:                     0
+    Test::Expect:                  0
     Test::More:                    0
 meta-spec:
     url:     http://module-build.sourceforge.net/META-spec-v1.2.html

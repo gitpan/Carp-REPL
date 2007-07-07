@@ -1,5 +1,11 @@
 Revision history for Carp-REPL
 
+0.05    Fri Jul  6 18:47:33 2007
+        :bt command to redisplay the backtrace
+        REPL now has History plugin loaded
+        Various bug fixes
+        :q command
+
 0.04    Fri Jul  6 14:57:33 2007
         Fix annoying global variable issue.
         But now REPL doesn't have use strict 'vars'.
