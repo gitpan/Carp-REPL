@@ -1,23 +1,27 @@
 Revision history for Carp-REPL
 
-0.05    Fri Jul  6 18:47:33 2007
+0.06    Sat Jul  7 13:43:14 EDT 2007
+        Proper aliasing support
+        Cleaned up the internals
+
+0.05    Fri Jul  6 18:47:33 EDT 2007
         :bt command to redisplay the backtrace
         REPL now has History plugin loaded
         Various bug fixes
         :q command
 
-0.04    Fri Jul  6 14:57:33 2007
+0.04    Fri Jul  6 14:57:33 EDT 2007
         Fix annoying global variable issue.
         But now REPL doesn't have use strict 'vars'.
         Will be fixed as soon as my Devel::EvalContext patch is applied.
 
-0.03    Fri Jul  6 14:17:46 2007
+0.03    Fri Jul  6 14:17:46 EDT 2007
         Add ability to move up and down the stack (:u and :d).
         Moose startup penalty now only paid if you get a REPL.
 
-0.02    Fri Jul  6 01:04:33 2007
+0.02    Fri Jul  6 01:04:33 EDT 2007
         Add the somewhat bloaty dependencies to Makefile.PL.
 
-0.01    Fri Jul  6 00:35:37 2007
+0.01    Fri Jul  6 00:35:37 EDT 2007
         First version, released on an unsuspecting world.
 

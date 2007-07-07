@@ -2,12 +2,6 @@ package Carp::REPL;
 use strict;
 use warnings;
 
-# so the LexEnvCarp plugin can see what the current environment looks like
-# it's ugly but it looks like it's sticking around
-our @environments;
-our @packages;
-our $backtrace;
-
 sub import
 {
     $SIG{__DIE__} = \&repl;
@@ -19,11 +13,11 @@ Carp::REPL - read-eval-print-loop on die
 
 =head1 VERSION
 
-Version 0.05
+Version 0.06
 
 =cut
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 =head1 SYNOPSIS
 
@@ -44,23 +38,31 @@ The intended way to use this module is through the command line.
 =head2 repl
 
 This module's interface consists of exactly one function: repl. This is
-provided so you may install your own $SIG{__DIE__} handler if you have no
+provided so you may install your own C<$SIG{__DIE__}> handler if you have no
 alternatives.
 
 It takes the same arguments as die, and returns no useful value. In fact, don't
 even depend on it returning at all!
 
 One useful place for calling this manually is if you just want to check the
-state of things without having to throw a fake error.
+state of things without having to throw a fake error. You can also change any
+variables and those changes will be seen by the rest of your program.
 
     use Carp::REPL;
 
     sub involved_calculation
     {
         # ...
-        Carp::REPL::repl;
+        $d = maybe_zero();
+        # ...
+        Carp::REPL::repl; # $d = 1
+        $sum += $n / $d;
         # ...
     }
+
+Unfortunately if you instead go with the usual C<-MCarp::REPL>, then
+C<$SIG{__DIE__}> will be invoked and there's no general way to recover. But you
+can still change variables and poke at things.
 
 =cut
 
@@ -71,9 +73,7 @@ sub repl
     require PadWalker;
     require Devel::REPL;
 
-    @packages = ();
-    @environments = ();
-    $backtrace = '';
+    my (@packages, @environments, $backtrace);
 
     my $frame = 0;
     while (1)
@@ -86,10 +86,7 @@ sub repl
         {
             # PadWalker has 0 mean 'current'
             # caller has 0 mean 'immediate caller'
-            push @environments,
-            {
-                %{PadWalker::peek_my($frame+1)}
-            };
+            push @environments, PadWalker::peek_my($frame+1);
         };
         Carp::carp($@), last if $@;
 
@@ -106,38 +103,24 @@ sub repl
 
     warn $backtrace;
 
-    _canonicalize_environments();
-
     my $repl = Devel::REPL->new;
-    for (qw(LexEnvCarp History))
-    {
-        $repl->load_plugin($_);
-    }
+
+    # LexEnv must come before LexEnvCarp
+    $repl->load_plugin($_) for qw/History LexEnv LexEnvCarp/;
+
+    $repl->environments(\@environments);
+    $repl->packages(\@packages);
+    $repl->backtrace($backtrace);
+    $repl->frame(0);
+
     $repl->run;
-}
-
-# PadWalker aggressively returns references to everything
-# so we try to produce the correct values for each variable
-
-sub _canonicalize_environments
-{
-    for my $env (@environments)
-    {
-        for my $v (values %$env)
-        {
-            if (ref($v) eq 'SCALAR' || ref($v) eq 'REF')
-            {
-                $v = $$v;
-            }
-        }
-    }
 }
 
 =head1 COMMANDS
 
 Note that this is not supposed to be a full-fledged debugger. A few commands
-are provided to aid you in finding out what went awry. See Devel::ebug if
-you're looking for a serious debugger.
+are provided to aid you in finding out what went awry. See
+L<Devel::ebug|Devel::ebug> if you're looking for a serious debugger.
 
 =over 4
 
@@ -155,7 +138,7 @@ Redisplay the stack trace.
 
 =item * :q
 
-Close the REPL. (^D also works)
+Close the REPL. (C<^D> also works)
 
 =back
 
@@ -168,6 +151,8 @@ L<Devel::REPL|Devel::REPL>, L<Devel::ebug|Devel::ebug>
 Shawn M Moore, C<< <sartak at gmail.com> >>
 
 =head1 BUGS
+
+No known bugs at this point. To expect that to stay true is laughably naive. :)
 
 Please report any bugs or feature requests to
 C<bug-carp-repl at rt.cpan.org>, or through the web interface at
@@ -207,6 +192,8 @@ L<http://search.cpan.org/dist/Carp-REPL>
 
 Thanks to Nelson Elhage and Jesse Vincent for the idea.
 
+Thanks to Matt Trout and Stevan Little for their advice.
+
 =head1 COPYRIGHT & LICENSE
 
 Copyright 2007 Shawn M Moore, all rights reserved.
@@ -217,3 +204,4 @@ under the same terms as Perl itself.
 =cut
 
 1; # End of Carp::REPL
+

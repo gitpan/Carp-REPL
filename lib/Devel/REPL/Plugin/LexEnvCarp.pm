@@ -2,103 +2,118 @@ package Devel::REPL::Plugin::LexEnvCarp;
 
 use Moose::Role;
 use namespace::clean -except => [ 'meta' ];
-use Lexical::Persistence;
+use Devel::LexAlias;
 
-has 'lexical_environment' => (
-  isa => 'Lexical::Persistence',
-  is => 'rw',
-  required => 1,
-  lazy => 1,
-  default => sub { undef }
+has 'environments' => (
+    isa => 'ArrayRef',
+    is => 'rw',
+    required => 1,
+    default => sub { [{}] },
+);
+
+has 'packages' => (
+    isa => 'ArrayRef',
+    is => 'rw',
+    required => 1,
+    default => sub { ['main'] },
 );
 
 has 'frame' => (
-  isa => 'Int',
-  is => 'rw',
-  required => 1,
-  lazy => 1,
-  default => sub { 0 },
+    isa => 'Int',
+    is => 'rw',
+    required => 1,
+    default => 0,
 );
 
-around 'read' => sub {
+has 'backtrace' => (
+    isa => 'Str',
+    is => 'rw',
+    required => 1,
+    default => '',
+);
+
+around 'frame' => sub
+{
     my $orig = shift;
 
-    my $line = $orig->(@_);
-    return if $line =~ /^\s*:q(?:uit)?\s*$/;
-    return $line;
+    my ($self, $frame) = @_;
+
+    return $orig->(@_) if !defined($frame);
+
+    if ($frame < 0)
+    {
+        warn "You're already at the bottom frame.\n";
+    }
+    elsif ($frame >= @{ $self->packages })
+    {
+        warn "You're already at the top frame.\n";
+    }
+    else
+    {
+        my ($package, $file, $line) = @{$self->packages->[$frame]};
+        print "Now at $file:$line (frame $frame).\n";
+        $orig->(@_);
+    }
 };
 
-around 'mangle_line' => sub {
+# this is totally the wrong spot for this. oh well.
+around 'read' => sub
+{
   my $orig = shift;
   my ($self, @rest) = @_;
   my $line = $self->$orig(@rest);
-  my $lp = $self->lexical_environment;
-  my $frame_delta;
-  my $frame = $self->frame;
 
-  if (!defined($lp))
-  {
-    $lp = $self->lexical_environment(Lexical::Persistence->new);
-    $frame_delta = 0;
-  }
+  return if !defined($line) || $line =~ /^\s*:q\s*$/;
 
-  if ($line =~ /^:b?t$/i)
+  if ($line =~ /^\s*:b?t\s*$/)
   {
-    print $Carp::REPL::backtrace;
+    print $self->backtrace;
     return '';
   }
 
-  if ($line =~ /^:up?$/i)
+  if ($line =~ /^\s*:up?\s*$/)
   {
-    if ($frame + 1 == @Carp::REPL::environments)
-    {
-      return q{"You're already at the top frame."};
-    }
-    $frame_delta = 1;
-  }
-  elsif ($line =~ /^:d(?:own)?$/i)
-  {
-    if ($frame == 0)
-    {
-      return q{"You're already at the bottom frame."};
-    }
-    $frame_delta = -1;
+    $self->frame($self->frame + 1);
+    return '';
   }
 
-  if (defined($frame_delta))
+  if ($line =~ /^\s*:d(?:own)?\s*$/)
   {
-    $frame += $frame_delta;
-    $self->frame($frame);
-    $lp->set_context(
-        _ => {
-            %{$Carp::REPL::environments[$frame]},
-        });
-    my ($package, $file, $line) = @{$Carp::REPL::packages[$frame]};
-    return qq{"Now at $file:$line (frame $frame)."} if $frame_delta != 0;
+    $self->frame($self->frame - 1);
+    return '';
   }
 
-  my $declarations = join '', map { "my $_;\n" } keys %{$lp->get_context('_')};
-
-  # Collate my declarations for all LP context vars then add '';
-  # so an empty statement doesn't return anything (with a no warnings
-  # to prevent "Useless use ..." warning)
-  return << "CODE";
-package $Carp::REPL::packages[$frame][0];
-$declarations
-{
-    no warnings 'void';
-    '';
-}
-no strict 'vars'; # so we can play with the globals
-$line
-CODE
+  return $line;
 };
 
-around 'execute' => sub {
+around 'mangle_line' => sub
+{
   my $orig = shift;
-  my ($self, $to_exec, @rest) = @_;
-  my $wrapped = $self->lexical_environment->wrap($to_exec);
-  return $self->$orig($wrapped, @rest);
+  my ($self, @rest) = @_;
+  my $line = $self->$orig(@rest);
+
+  my $frame = $self->frame;
+  my $package = $self->packages->[$frame][0];
+
+  my $declarations = join "\n",
+                     map {"my $_;"}
+                     keys %{ $self->environments->[$frame] };
+
+  my $aliases = << 'ALIASES';
+while (my ($k, $v) = each %{ $_REPL->environments->[$_REPL->frame] })
+{
+    Devel::LexAlias::lexalias 0, $k, $v;
+}
+ALIASES
+
+  return << "CODE";
+package $package;
+no warnings 'misc'; # declaration in same scope masks earlier instance
+no strict 'vars';   # so we get all the global variables in our package
+$declarations
+$aliases
+$line
+CODE
 };
 
 =head1 NAME
@@ -107,19 +122,20 @@ Devel::REPL::Plugin::LexEnvCarp - Devel::REPL plugin for Carp::REPL
 
 =head1 VERSION
 
-Version 0.05
+Version 0.06
 
 =cut
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 =head1 SYNOPSIS
 
-This implements exactly the same thing as the Devel::REPL::Plugin::LexEnv
-module except the lexical environment exposed by Carp::REPL is mixed in.
+This sets up the environment captured by L<Carp::REPL|Carp::REPL>. This plugin
+isn't intended for use by anything else. There are plans to move some features
+from this into a generic L<Devel::REPL|Devel::REPL> plugin.
 
-It also adds a few extra commands like :up and :down to move up and down the
-stack.
+This plugin also adds a few extra commands like :up and :down to move up and
+down the stack.
 
 =head1 AUTHOR
 
