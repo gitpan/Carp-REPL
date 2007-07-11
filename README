@@ -1,4 +1,4 @@
-Carp-REPL 0.06
+Carp-REPL 0.07
 
 Carp::REPL is a drop-in module for getting a REPL (read-eval-print-loop)
 which helps you in examining the state of the world when things blew up.
@@ -7,6 +7,7 @@ advantage of using Carp::REPL over Devel::REPL is the lexical variables are
 made available, as well as stack manipulation commands.
 
 MAJOR CHANGES
+    0.07: sub arguments stuffed into $_a
     0.06: proper aliases so you can influence the environment
     0.05: :bt to redisplay stack trace, :q to quit
     0.03: :up and :down for traversing the call stack
@@ -44,7 +45,7 @@ You can also look for information at:
 
 COPYRIGHT AND LICENCE
 
-Copyright (C) 2007 Shawn M Moore
+Copyright (C) 2007 Best Practical Solutions
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

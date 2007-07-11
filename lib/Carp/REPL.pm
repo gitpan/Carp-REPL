@@ -13,11 +13,11 @@ Carp::REPL - read-eval-print-loop on die
 
 =head1 VERSION
 
-Version 0.06
+Version 0.07 released 10 Jul 07
 
 =cut
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 =head1 SYNOPSIS
 
@@ -73,11 +73,12 @@ sub repl
     require PadWalker;
     require Devel::REPL;
 
-    my (@packages, @environments, $backtrace);
+    my (@packages, @environments, @argses, $backtrace);
 
     my $frame = 0;
     while (1)
     {
+        package DB;
         my ($package, $file, $line, $subroutine) = caller($frame)
             or last;
         $package = 'main' if !defined($package);
@@ -90,6 +91,7 @@ sub repl
         };
         Carp::carp($@), last if $@;
 
+        push @argses, [@DB::args];
         push @packages, [$package, $file, $line];
 
         $backtrace .= sprintf "%s%d: %s called at %s:%s.\n",
@@ -110,6 +112,7 @@ sub repl
 
     $repl->environments(\@environments);
     $repl->packages(\@packages);
+    $repl->argses(\@argses);
     $repl->backtrace($backtrace);
     $repl->frame(0);
 
@@ -120,7 +123,7 @@ sub repl
 
 Note that this is not supposed to be a full-fledged debugger. A few commands
 are provided to aid you in finding out what went awry. See
-L<Devel::ebug|Devel::ebug> if you're looking for a serious debugger.
+L<Devel::ebug> if you're looking for a serious debugger.
 
 =over 4
 
@@ -142,9 +145,29 @@ Close the REPL. (C<^D> also works)
 
 =back
 
+=head1 VARIABLES
+
+=item * $_REPL
+
+This represents the Devel::REPL object (with the LexEnvCarp plugin, among
+others, mixed in).
+
+=item * $_a
+
+This represents the arguments passed to the subroutine at the current frame in
+the call stack. Modifications are ignored (how would that work anyway?
+Re-invoke the sub?)
+
+=back
+
+=head1 CAVEATS
+
+Dynamic scope probably produces unexpected results. I don't see any easy (or
+even difficult!) solution to this. Therefore it's a caveat and not a bug. :)
+
 =head1 SEE ALSO
 
-L<Devel::REPL|Devel::REPL>, L<Devel::ebug|Devel::ebug>
+L<Devel::REPL>, L<Devel::ebug>
 
 =head1 AUTHOR
 
@@ -196,7 +219,7 @@ Thanks to Matt Trout and Stevan Little for their advice.
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2007 Shawn M Moore, all rights reserved.
+Copyright 2007 Best Practical Solutions, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

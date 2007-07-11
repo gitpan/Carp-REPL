@@ -1,5 +1,8 @@
 Revision history for Carp-REPL
 
+0.07    Tue Jul 10 22:34:55 2007
+        Made sub arguments available in $_a
+
 0.06    Sat Jul  7 13:43:14 EDT 2007
         Proper aliasing support
         Cleaned up the internals

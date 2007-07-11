@@ -18,6 +18,13 @@ has 'packages' => (
     default => sub { ['main'] },
 );
 
+has 'argses' => (
+    isa => 'ArrayRef',
+    is => 'rw',
+    required => 1,
+    default => sub { [[]] },
+);
+
 has 'frame' => (
     isa => 'Int',
     is => 'rw',
@@ -104,6 +111,7 @@ while (my ($k, $v) = each %{ $_REPL->environments->[$_REPL->frame] })
 {
     Devel::LexAlias::lexalias 0, $k, $v;
 }
+my $_a; Devel::LexAlias::lexalias 0, '$_a', \$_REPL->argses->[$_REPL->frame];
 ALIASES
 
   return << "CODE";
@@ -122,17 +130,17 @@ Devel::REPL::Plugin::LexEnvCarp - Devel::REPL plugin for Carp::REPL
 
 =head1 VERSION
 
-Version 0.06
+Version 0.07 released 10 Jul 07
 
 =cut
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 =head1 SYNOPSIS
 
-This sets up the environment captured by L<Carp::REPL|Carp::REPL>. This plugin
+This sets up the environment captured by L<Carp::REPL>. This plugin
 isn't intended for use by anything else. There are plans to move some features
-from this into a generic L<Devel::REPL|Devel::REPL> plugin.
+from this into a generic L<Devel::REPL> plugin.
 
 This plugin also adds a few extra commands like :up and :down to move up and
 down the stack.
@@ -147,7 +155,7 @@ Please report any bugs to a medium given by Carp::REPL.
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2007 Shawn M Moore, all rights reserved.
+Copyright 2007 Best Practical Solutions, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

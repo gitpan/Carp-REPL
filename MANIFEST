@@ -13,12 +13,15 @@ t/04-scope.t
 t/05-interact.t
 t/06-remember.t
 t/07-frame.t
+t/08-alias.t
+t/09-args.t
 t/99-bug.t
 t/boilerplate.t
-t/pod.t
 t/scripts/01-trivial.pl
 t/scripts/02-lexicals.pl
 t/scripts/03-subs.pl
 t/scripts/04-scope.pl
 t/scripts/05-interact.pl
 t/scripts/07-frame.pl
+t/scripts/08-alias.pl
+t/scripts/09-args.pl
