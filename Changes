@@ -1,5 +1,8 @@
 Revision history for Carp-REPL
 
+0.09    Thu Jul 12 12:32:12 2007
+        Move to Module::Install
+
 0.08    Wed Jul 11 16:56:08 2007
         Add 'nodie' and 'warn' arguments
 

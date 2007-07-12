@@ -1,23 +1,21 @@
-use strict;
-use warnings;
-use ExtUtils::MakeMaker;
+# Load the Module::Install bundled in ./inc/
+use inc::Module::Install;
 
-WriteMakefile(
-    NAME                => 'Carp::REPL',
-    AUTHOR              => 'Shawn M Moore <sartak@gmail.com>',
-    VERSION_FROM        => 'lib/Carp/REPL.pm',
-    ABSTRACT_FROM       => 'lib/Carp/REPL.pm',
-    PL_FILES            => {},
-    PREREQ_PM => {
-        'Devel::LexAlias' => 0,
-        'Devel::REPL' => 0,
-        'Moose' => 0,
-        'Moose::Role' => 0,
-        'namespace::clean' => 0,
-        'PadWalker' => 0,
-        'Test::Expect' => 0,
-        'Test::More' => 0,
-    },
-    dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
-    clean               => { FILES => 'Carp-REPL-*' },
-);
+# Define metadata
+name            'Carp-REPL';
+all_from        'lib/Carp/REPL.pm';
+
+# Specific dependencies
+requires        'Devel::LexAlias'  => 0;
+requires        'Devel::REPL'      => 0;
+requires        'Moose'            => 0;
+requires        'Moose::Role'      => 0;
+requires        'namespace::clean' => 0;
+requires        'PadWalker'        => 0;
+
+build_requires  'Test::Expect'     => 0;
+build_requires  'Test::More'       => 0;
+
+auto_install;
+WriteAll;
+
