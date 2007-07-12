@@ -15,6 +15,8 @@ t/06-remember.t
 t/07-frame.t
 t/08-alias.t
 t/09-args.t
+t/10-nodie.t
+t/11-warn.t
 t/99-bug.t
 t/boilerplate.t
 t/scripts/01-trivial.pl
@@ -25,3 +27,4 @@ t/scripts/05-interact.pl
 t/scripts/07-frame.pl
 t/scripts/08-alias.pl
 t/scripts/09-args.pl
+t/scripts/11-warn.pl

@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:                Carp-REPL
-version:             0.07
+version:             0.08
 abstract:            read-eval-print-loop on die
 license:             ~
 generated_by:        ExtUtils::MakeMaker version 6.32

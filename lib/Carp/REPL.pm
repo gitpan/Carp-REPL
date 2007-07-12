@@ -4,7 +4,11 @@ use warnings;
 
 sub import
 {
-    $SIG{__DIE__} = \&repl;
+    my $nodie = grep {$_ eq 'nodie'} @_;
+    my $warn  = grep {$_ eq 'warn' } @_;
+
+    $SIG{__DIE__} = \&repl unless $nodie;
+    $SIG{__WARN__} = \&repl if $warn;
 }
 
 =head1 NAME
@@ -13,11 +17,11 @@ Carp::REPL - read-eval-print-loop on die
 
 =head1 VERSION
 
-Version 0.07 released 10 Jul 07
+Version 0.08 released 11 Jul 07
 
 =cut
 
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 
 =head1 SYNOPSIS
 
@@ -32,6 +36,32 @@ The intended way to use this module is through the command line.
         $ map {"$_\n"} $form, $subform
         27B/6
         Report::TPS::Subreport=HASH(0x86da61c)
+
+=head1 USAGE
+
+    -MCarp::REPL
+
+Works as command line argument. This automatically installs the die handler for
+you, so if you receive a fatal error you get a REPL before the universe
+explodes.
+
+    use Carp::REPL;
+
+Same as above.
+
+    use Carp::REPL 'nodie';
+
+Loads the module without installing the die handler. Use this if you just want to
+run C<Carp::REPL::repl> on your own terms.
+
+    use Carp::REPL 'warn';
+
+Same as C<Carp::REPL> but also installs REPL to be invoked whenever a warning
+is generated.
+
+    use Carp::REPL 'warn', 'nodie';
+
+I don't see why you would want to do this, but it's available. :)
 
 =head1 FUNCTIONS
 
