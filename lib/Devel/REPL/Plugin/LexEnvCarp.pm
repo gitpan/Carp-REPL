@@ -1,8 +1,10 @@
 package Devel::REPL::Plugin::LexEnvCarp;
 
+use 5.6.0;
 use Moose::Role;
 use namespace::clean -except => [ 'meta' ];
 use Devel::LexAlias;
+use Data::Dump::Streamer;
 
 has 'environments' => (
     isa => 'ArrayRef',
@@ -78,6 +80,12 @@ around 'read' => sub
     return '';
   }
 
+  if ($line =~ /^\s*:e?(?:nv)?\s*$/)
+  {
+    Dump($self->environments->[$self->frame])->Names('Env')->Out;
+    return '';
+  }
+
   if ($line =~ /^\s*:up?\s*$/)
   {
     $self->frame($self->frame + 1);
@@ -130,11 +138,11 @@ Devel::REPL::Plugin::LexEnvCarp - Devel::REPL plugin for Carp::REPL
 
 =head1 VERSION
 
-Version 0.09 released 12 Jul 07
+Version 0.11 released 20 Sep 07
 
 =cut
 
-our $VERSION = '0.09';
+our $VERSION = '0.11';
 
 =head1 SYNOPSIS
 

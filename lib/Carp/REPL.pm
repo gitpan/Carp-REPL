@@ -1,11 +1,14 @@
 package Carp::REPL;
 use strict;
 use warnings;
+use 5.6.0;
+our $noprofile = 0;
 
 sub import
 {
     my $nodie = grep {$_ eq 'nodie'} @_;
     my $warn  = grep {$_ eq 'warn' } @_;
+    $noprofile = grep {$_ eq 'noprofile'} @_;
 
     $SIG{__DIE__} = \&repl unless $nodie;
     $SIG{__WARN__} = \&repl if $warn;
@@ -13,15 +16,15 @@ sub import
 
 =head1 NAME
 
-Carp::REPL - read-eval-print-loop on die
+Carp::REPL - read-eval-print-loop on die and/or warn
 
 =head1 VERSION
 
-Version 0.09 released 12 Jul 07
+Version 0.11 released 20 Sep 07
 
 =cut
 
-our $VERSION = '0.09';
+our $VERSION = '0.11';
 
 =head1 SYNOPSIS
 
@@ -63,6 +66,11 @@ is generated.
 
 I don't see why you would want to do this, but it's available. :)
 
+    use Carp::REPL 'noprofile';
+
+Don't load any per-user L<Devel::REPL> configuration (really only useful for
+testing).
+
 =head1 FUNCTIONS
 
 =head2 repl
@@ -92,7 +100,7 @@ variables and those changes will be seen by the rest of your program.
 
 Unfortunately if you instead go with the usual C<-MCarp::REPL>, then
 C<$SIG{__DIE__}> will be invoked and there's no general way to recover. But you
-can still change variables and poke at things.
+can still change variables to poke at things.
 
 =cut
 
@@ -101,7 +109,7 @@ sub repl
     warn @_, "\n"; # tell the user what blew up
 
     require PadWalker;
-    require Devel::REPL;
+    require Devel::REPL::Script;
 
     my (@packages, @environments, @argses, $backtrace);
 
@@ -135,18 +143,27 @@ sub repl
 
     warn $backtrace;
 
-    my $repl = Devel::REPL->new;
+    my ($runner, $repl);
 
-    # LexEnv must come before LexEnvCarp
-    $repl->load_plugin($_) for qw/History LexEnv LexEnvCarp/;
+    if ($noprofile)
+    {
+        $repl = $runner = Devel::REPL->new;
+        $repl->load_plugin('LexEnv');
+    }
+    else
+    {
+        $runner = Devel::REPL::Script->new;
+        $repl = $runner->_repl;
+    }
+
+    $repl->load_plugin('LexEnvCarp');
 
     $repl->environments(\@environments);
     $repl->packages(\@packages);
     $repl->argses(\@argses);
     $repl->backtrace($backtrace);
     $repl->frame(0);
-
-    $repl->run;
+    $runner->run;
 }
 
 =head1 COMMANDS
@@ -168,6 +185,10 @@ Moves one frame down in the stack.
 =item * :t
 
 Redisplay the stack trace.
+
+=item * :e
+
+Display the current lexical environment.
 
 =item * :q
 
