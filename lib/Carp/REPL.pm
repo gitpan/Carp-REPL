@@ -2,17 +2,83 @@ package Carp::REPL;
 use strict;
 use warnings;
 use 5.6.0;
+our $VERSION = '0.12';
+
+use base 'Exporter';
+our @EXPORT_OK = 'repl';
+
 our $noprofile = 0;
 
-sub import
-{
-    my $nodie = grep {$_ eq 'nodie'} @_;
-    my $warn  = grep {$_ eq 'warn' } @_;
-    $noprofile = grep {$_ eq 'noprofile'} @_;
+sub import {
+    my $nodie  = grep { $_ eq 'nodie'    } @_;
+    my $warn   = grep { $_ eq 'warn'     } @_;
+    $noprofile = grep { $_ eq 'noprofile'} @_;
 
-    $SIG{__DIE__} = \&repl unless $nodie;
+    $SIG{__DIE__}  = \&repl unless $nodie;
     $SIG{__WARN__} = \&repl if $warn;
 }
+
+sub repl {
+    warn @_, "\n"; # tell the user what blew up
+
+    require PadWalker;
+    require Devel::REPL::Script;
+
+    my (@packages, @environments, @argses, $backtrace);
+
+    my $frame = 0;
+    while (1) {
+        package DB;
+        my ($package, $file, $line, $subroutine) = caller($frame)
+            or last;
+        $package = 'main' if !defined($package);
+
+        eval {
+            # PadWalker has 0 mean 'current'
+            # caller has 0 mean 'immediate caller'
+            push @environments, PadWalker::peek_my($frame+1);
+        };
+
+        Carp::carp($@), last if $@;
+
+        push @argses, [@DB::args];
+        push @packages, [$package, $file, $line];
+
+        $backtrace .= sprintf "%s%d: %s called at %s:%s.\n",
+            $frame == 0 ? '' : '   ',
+            $frame,
+            $subroutine,
+            $file,
+            $line;
+
+        ++$frame;
+    }
+
+    warn $backtrace;
+
+    my ($runner, $repl);
+
+    if ($noprofile) {
+        $repl = $runner = Devel::REPL->new;
+    }
+    else {
+        $runner = Devel::REPL::Script->new;
+        $repl = $runner->_repl;
+    }
+
+    $repl->load_plugin('Carp::REPL');
+
+    $repl->environments(\@environments);
+    $repl->packages(\@packages);
+    $repl->argses(\@argses);
+    $repl->backtrace($backtrace);
+    $repl->frame(0);
+    $runner->run;
+}
+
+1;
+
+__END__
 
 =head1 NAME
 
@@ -20,56 +86,45 @@ Carp::REPL - read-eval-print-loop on die and/or warn
 
 =head1 VERSION
 
-Version 0.11 released 20 Sep 07
-
-=cut
-
-our $VERSION = '0.11';
+Version 0.12 released 16 May 08
 
 =head1 SYNOPSIS
 
 The intended way to use this module is through the command line.
 
-    perl tps-report.pl
-        Can't call method "cover_sheet" without a package or object reference at tps-report.pl line 6019.
-
     perl -MCarp::REPL tps-report.pl
         Can't call method "cover_sheet" without a package or object reference at tps-report.pl line 6019.
 
-        $ map {"$_\n"} $form, $subform
-        27B/6
-        Report::TPS::Subreport=HASH(0x86da61c)
+    # instead of exiting, you get a REPL!
+
+    $ $form
+    27B/6
+
+    $ $self->get_form
+    27B/6
+
+    $ "ah ha! there's my bug, I thought get_form returned an object"
+    ah ha! there's my bug, I thought get_form returned an object
 
 =head1 USAGE
 
-    -MCarp::REPL
+=head2 C<-MCarp::REPL>
+=head2 C<-MCarp::REPL=warn>
 
 Works as command line argument. This automatically installs the die handler for
 you, so if you receive a fatal error you get a REPL before the universe
-explodes.
+explodes. Specifying C<=warn> also installs a warn handler for finding those
+mysterious warnings.
 
-    use Carp::REPL;
+=head2 C<use Carp::REPL;>
+=head2 C<use Carp::REPL 'warn';>
 
 Same as above.
 
-    use Carp::REPL 'nodie';
+=head2 C<use Carp::REPL 'nodie';>
 
-Loads the module without installing the die handler. Use this if you just want to
-run C<Carp::REPL::repl> on your own terms.
-
-    use Carp::REPL 'warn';
-
-Same as C<Carp::REPL> but also installs REPL to be invoked whenever a warning
-is generated.
-
-    use Carp::REPL 'warn', 'nodie';
-
-I don't see why you would want to do this, but it's available. :)
-
-    use Carp::REPL 'noprofile';
-
-Don't load any per-user L<Devel::REPL> configuration (really only useful for
-testing).
+Loads the module without installing the die handler. Use this if you just want
+to run C<Carp::REPL::repl> on your own terms.
 
 =head1 FUNCTIONS
 
@@ -86,14 +141,13 @@ One useful place for calling this manually is if you just want to check the
 state of things without having to throw a fake error. You can also change any
 variables and those changes will be seen by the rest of your program.
 
-    use Carp::REPL;
+    use Carp::REPL 'repl';
 
-    sub involved_calculation
-    {
+    sub involved_calculation {
         # ...
         $d = maybe_zero();
         # ...
-        Carp::REPL::repl; # $d = 1
+        repl(); # $d = 1
         $sum += $n / $d;
         # ...
     }
@@ -101,70 +155,6 @@ variables and those changes will be seen by the rest of your program.
 Unfortunately if you instead go with the usual C<-MCarp::REPL>, then
 C<$SIG{__DIE__}> will be invoked and there's no general way to recover. But you
 can still change variables to poke at things.
-
-=cut
-
-sub repl
-{
-    warn @_, "\n"; # tell the user what blew up
-
-    require PadWalker;
-    require Devel::REPL::Script;
-
-    my (@packages, @environments, @argses, $backtrace);
-
-    my $frame = 0;
-    while (1)
-    {
-        package DB;
-        my ($package, $file, $line, $subroutine) = caller($frame)
-            or last;
-        $package = 'main' if !defined($package);
-
-        eval
-        {
-            # PadWalker has 0 mean 'current'
-            # caller has 0 mean 'immediate caller'
-            push @environments, PadWalker::peek_my($frame+1);
-        };
-        Carp::carp($@), last if $@;
-
-        push @argses, [@DB::args];
-        push @packages, [$package, $file, $line];
-
-        $backtrace .= sprintf "%s%d: %s called at %s:%s.\n",
-            $frame == 0 ? '' : '   ',
-            $frame,
-            $subroutine,
-            $file,
-            $line;
-        ++$frame;
-    }
-
-    warn $backtrace;
-
-    my ($runner, $repl);
-
-    if ($noprofile)
-    {
-        $repl = $runner = Devel::REPL->new;
-        $repl->load_plugin('LexEnv');
-    }
-    else
-    {
-        $runner = Devel::REPL::Script->new;
-        $repl = $runner->_repl;
-    }
-
-    $repl->load_plugin('LexEnvCarp');
-
-    $repl->environments(\@environments);
-    $repl->packages(\@packages);
-    $repl->argses(\@argses);
-    $repl->backtrace($backtrace);
-    $repl->frame(0);
-    $runner->run;
-}
 
 =head1 COMMANDS
 
@@ -190,6 +180,10 @@ Redisplay the stack trace.
 
 Display the current lexical environment.
 
+=item * :l
+
+List eleven lines of source code of the current frame.
+
 =item * :q
 
 Close the REPL. (C<^D> also works)
@@ -202,8 +196,7 @@ Close the REPL. (C<^D> also works)
 
 =item * $_REPL
 
-This represents the Devel::REPL object (with the LexEnvCarp plugin, among
-others, mixed in).
+This represents the Devel::REPL object.
 
 =item * $_a
 
@@ -228,41 +221,9 @@ Shawn M Moore, C<< <sartak at gmail.com> >>
 
 =head1 BUGS
 
-No known bugs at this point. To expect that to stay true is laughably naive. :)
-
 Please report any bugs or feature requests to
 C<bug-carp-repl at rt.cpan.org>, or through the web interface at
 L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Carp-REPL>.
-I will be notified, and then you'll automatically be notified of progress on
-your bug as I make changes.
-
-=head1 SUPPORT
-
-You can find documentation for this module with the perldoc command.
-
-    perldoc Carp::REPL
-
-You can also look for information at:
-
-=over 4
-
-=item * AnnoCPAN: Annotated CPAN documentation
-
-L<http://annocpan.org/dist/Carp-REPL>
-
-=item * CPAN Ratings
-
-L<http://cpanratings.perl.org/d/Carp-REPL>
-
-=item * RT: CPAN's request tracker
-
-L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Carp-REPL>
-
-=item * Search CPAN
-
-L<http://search.cpan.org/dist/Carp-REPL>
-
-=back
 
 =head1 ACKNOWLEDGEMENTS
 
@@ -272,12 +233,10 @@ Thanks to Matt Trout and Stevan Little for their advice.
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2007 Best Practical Solutions, all rights reserved.
+Copyright 2007-2008 Best Practical Solutions.
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
 
 =cut
-
-1; # End of Carp::REPL
 

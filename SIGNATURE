@@ -1,0 +1,62 @@
+This file contains message digests of all files listed in MANIFEST,
+signed via the Module::Signature module, version 0.55.
+
+To verify the content in this distribution, first make sure you have
+Module::Signature installed, then type:
+
+    % cpansign -v
+
+It will check each file's integrity, as well as the signature's
+validity.  If "==> Signature verified OK! <==" is not displayed,
+the distribution may already have been compromised, and you should
+not run its Makefile.PL or Build.PL.
+
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+SHA1 028d79353eee57bfdd4fff96eeada629014af7e9 Changes
+SHA1 ce0201d53be0ab8f126876a4e150ae1ca804adec MANIFEST
+SHA1 988557db5dd2aaba80e8e8ff292f41c7527e5946 META.yml
+SHA1 d90277d52bedb7ac030d2854babe6b6c3b063998 Makefile.PL
+SHA1 7e2cfa1b9efe0d502ee57717649c90ba4bd28ba9 inc/Module/Install.pm
+SHA1 6e1392d80a0f239eecd5664f7f21f922cedb9329 inc/Module/Install/Base.pm
+SHA1 f69417fe831d9cc22a78f00a617afadceade4d81 inc/Module/Install/Can.pm
+SHA1 c61d02895330310048bf388881b5e2e064031561 inc/Module/Install/Fetch.pm
+SHA1 54fcbed19232ec959bb17cfb4410599afc7f0779 inc/Module/Install/Makefile.pm
+SHA1 7d3be9b158e37b2b2c22084740099955623b1d56 inc/Module/Install/Metadata.pm
+SHA1 0a8b66180229ba2f9deaea1fedd0aacf7a7ace6b inc/Module/Install/Win32.pm
+SHA1 d3352eb33fe43a5f3ead513f645224fe34d73bc9 inc/Module/Install/WriteAll.pm
+SHA1 595f957d4213e0270fde9fc0261025788e2dda02 lib/Carp/REPL.pm
+SHA1 b285db8e369fa33d2c970199542df271eb61753d lib/Devel/REPL/Plugin/Carp/REPL.pm
+SHA1 200579cd6b10a9204d146279b3b6f896f3b654f7 t/00-load.t
+SHA1 acb7be6501731a313a9568bb176effb58aa4a202 t/01-trivial.t
+SHA1 4b9f79a4ba8437a2669ea6f4217369180288f39e t/02-lexicals.t
+SHA1 907ece2cf00a1b8d799531020b2e2dfe28588caa t/03-subs.t
+SHA1 9aa62fdaefd5fad23437912d880a0c587fb7c5f0 t/04-scope.t
+SHA1 3155d904482e63273de093cca987984bf0a5e25b t/05-interact.t
+SHA1 fd62d9287f7ab2bd945bac328ed8776390d8abfe t/06-remember.t
+SHA1 0a0a8f22da4a5cfc2ebf9baf6c825cfc6c645be6 t/07-frame.t
+SHA1 9c7a03934c8e646bdffcec92218d332e3a81a03f t/08-alias.t
+SHA1 d418809e39f16065716a3088fc9c2d20d3ad2705 t/09-args.t
+SHA1 46c12bf6c1771d513ba6d28540e7aee84262c66a t/10-nodie.t
+SHA1 b007be285f251d0ee9752e46cf111b763b4c2a30 t/11-warn.t
+SHA1 b85dc0893eb4d05eddbeebef48f936ffadfd7f95 t/12-env.t
+SHA1 565527abab01a41373f6a40f69e12122b832e2fc t/13-list.t
+SHA1 792ea657e1f2878fad633f23dd163e08bf048412 t/99-bug.t
+SHA1 309a00b5dfeb21581dd858b0dccd2982c36c49b7 t/scripts/01-trivial.pl
+SHA1 2831e51442975f3a8debb2b28ae1c3c6730f10ca t/scripts/02-lexicals.pl
+SHA1 447aac866ca13df9f5558818af89c856dce084d1 t/scripts/03-subs.pl
+SHA1 60fa9cd3b2f8a1e1195058b685e9f2406856787d t/scripts/04-scope.pl
+SHA1 f67d5aedbb12ed285345fa89e7bf676fe07061bb t/scripts/05-interact.pl
+SHA1 b0bee542902fed028dbac38851bdd9b39e3f3b12 t/scripts/07-frame.pl
+SHA1 3165f354b9d067dd03d15063eec51b90ec58b100 t/scripts/08-alias.pl
+SHA1 a0fc851b903da20dbc2cc8209e1a1a8153617736 t/scripts/09-args.pl
+SHA1 db0a8be9a79745d531946db46dbce0a39bb5bcd0 t/scripts/11-warn.pl
+SHA1 a613badc8901c744c6fa0777ec4071e37ca7f23d t/scripts/12-env.pl
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.7 (Darwin)
+
+iD8DBQFILablsxfQtHhyRPoRAjkmAKCavAz7ucId7BW+MkJaMl/PdvfddwCdHW2c
+oSSStKqhb81ypdy2HQZQZaw=
+=eUHx
+-----END PGP SIGNATURE-----
