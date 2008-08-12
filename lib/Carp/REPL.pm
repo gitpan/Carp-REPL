@@ -2,62 +2,44 @@ package Carp::REPL;
 use strict;
 use warnings;
 use 5.6.0;
-our $VERSION = '0.12';
+our $VERSION = '0.13';
 
 use base 'Exporter';
 our @EXPORT_OK = 'repl';
 
 our $noprofile = 0;
+our $bottom_frame = 0;
 
 sub import {
     my $nodie  = grep { $_ eq 'nodie'    } @_;
     my $warn   = grep { $_ eq 'warn'     } @_;
+    my $test   = grep { $_ eq 'test'     } @_;
     $noprofile = grep { $_ eq 'noprofile'} @_;
 
     $SIG{__DIE__}  = \&repl unless $nodie;
     $SIG{__WARN__} = \&repl if $warn;
+
+    if ($test) {
+        require Test::Builder;
+        my $ok = \&Test::Builder::ok;
+
+        no warnings 'redefine';
+        *Test::Builder::ok = sub {
+            local $Test::Builder::Level = $Test::Builder::Level + 1;
+            my $passed = $ok->(@_);
+            local $bottom_frame = $Test::Builder::Level;
+            repl("Test failure") if !$passed;
+            return $passed;
+        };
+    }
 }
 
 sub repl {
     warn @_, "\n"; # tell the user what blew up
 
-    require PadWalker;
     require Devel::REPL::Script;
 
-    my (@packages, @environments, @argses, $backtrace);
-
-    my $frame = 0;
-    while (1) {
-        package DB;
-        my ($package, $file, $line, $subroutine) = caller($frame)
-            or last;
-        $package = 'main' if !defined($package);
-
-        eval {
-            # PadWalker has 0 mean 'current'
-            # caller has 0 mean 'immediate caller'
-            push @environments, PadWalker::peek_my($frame+1);
-        };
-
-        Carp::carp($@), last if $@;
-
-        push @argses, [@DB::args];
-        push @packages, [$package, $file, $line];
-
-        $backtrace .= sprintf "%s%d: %s called at %s:%s.\n",
-            $frame == 0 ? '' : '   ',
-            $frame,
-            $subroutine,
-            $file,
-            $line;
-
-        ++$frame;
-    }
-
-    warn $backtrace;
-
     my ($runner, $repl);
-
     if ($noprofile) {
         $repl = $runner = Devel::REPL->new;
     }
@@ -68,11 +50,8 @@ sub repl {
 
     $repl->load_plugin('Carp::REPL');
 
-    $repl->environments(\@environments);
-    $repl->packages(\@packages);
-    $repl->argses(\@argses);
-    $repl->backtrace($backtrace);
-    $repl->frame(0);
+    warn $repl->stacktrace;
+
     $runner->run;
 }
 
@@ -83,10 +62,6 @@ __END__
 =head1 NAME
 
 Carp::REPL - read-eval-print-loop on die and/or warn
-
-=head1 VERSION
-
-Version 0.12 released 16 May 08
 
 =head1 SYNOPSIS
 
@@ -109,6 +84,7 @@ The intended way to use this module is through the command line.
 =head1 USAGE
 
 =head2 C<-MCarp::REPL>
+
 =head2 C<-MCarp::REPL=warn>
 
 Works as command line argument. This automatically installs the die handler for
@@ -117,6 +93,7 @@ explodes. Specifying C<=warn> also installs a warn handler for finding those
 mysterious warnings.
 
 =head2 C<use Carp::REPL;>
+
 =head2 C<use Carp::REPL 'warn';>
 
 Same as above.
@@ -125,6 +102,12 @@ Same as above.
 
 Loads the module without installing the die handler. Use this if you just want
 to run C<Carp::REPL::repl> on your own terms.
+
+=head2 C<use Carp::REPL 'test';>
+
+=head2 C<-MCarp::REPL=test>
+
+Load a REPL on test failure! (as long as it uses L<Test::More/ok>)
 
 =head1 FUNCTIONS
 
@@ -171,6 +154,14 @@ Moves one frame up in the stack.
 =item * :d
 
 Moves one frame down in the stack.
+
+=item * :top
+
+Moves to the top frame of the stack.
+
+=item * :bottom
+
+Moves to the bottom frame of the stack.
 
 =item * :t
 
