@@ -14,22 +14,19 @@ not run its Makefile.PL or Build.PL.
 -----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA1
 
-SHA1 d31b3e556b48982d08d657252060dc9451449e6d Changes
-SHA1 58626f83713967e6cc89b7ca4a7a4237e230df3d MANIFEST
-SHA1 476fc7758be16d46b2c0f655afca11654beacba1 META.yml
-SHA1 1e52808da941ca4032be7e054e5192a8ea8955c0 Makefile.PL
-SHA1 603bb9de29fb8cba7f13409c546750972eff645d inc/Module/AutoInstall.pm
+SHA1 1c2fc42b91ac325555a6dca4dfdbd63e69be4d80 Changes
+SHA1 ce0201d53be0ab8f126876a4e150ae1ca804adec MANIFEST
+SHA1 d04dfdc15bca8caed54cb2705133d400d44e7057 META.yml
+SHA1 1e3ddd8833cbbfc3990e7b032ddaa5c0caa13085 Makefile.PL
 SHA1 8b836389e4bc170eb8d19b7296b2f4978ac36136 inc/Module/Install.pm
-SHA1 182a0df45b65151afdc2be0b7246a2d02d0f0567 inc/Module/Install/AutoInstall.pm
 SHA1 85b32a1d5f215d99f411c3dd6113b537fcd5c57d inc/Module/Install/Base.pm
 SHA1 fde745e180861c7c0ba3ee5a767cafdbdb1d3ebd inc/Module/Install/Can.pm
 SHA1 e259400ceb54c34def9c994f52d7091108ce7ffc inc/Module/Install/Fetch.pm
-SHA1 4933b00c3a646da8d223c6957f94552bbd62f8c6 inc/Module/Install/Include.pm
 SHA1 da42b522e5a7ffbae0ceec900f3635ad9990c565 inc/Module/Install/Makefile.pm
 SHA1 ba005818ee9f97146bfa4e14e53c684e9e446902 inc/Module/Install/Metadata.pm
 SHA1 85e6b1cf5b7ca81bfb469a99389fa947d4b8a08e inc/Module/Install/Win32.pm
 SHA1 d32dff9f0d2f02023ca6d79a48d62fd855916351 inc/Module/Install/WriteAll.pm
-SHA1 3cfb36f04022978079ed89354c597feab120a4df lib/Carp/REPL.pm
+SHA1 7087586d5caaed43d48b0edcac59ea90be1e8ed1 lib/Carp/REPL.pm
 SHA1 b7a11b774a707c2cd28f62f6d71c32d8bbe6920d lib/Devel/REPL/Plugin/Carp/REPL.pm
 SHA1 200579cd6b10a9204d146279b3b6f896f3b654f7 t/00-load.t
 SHA1 acb7be6501731a313a9568bb176effb58aa4a202 t/01-trivial.t
@@ -59,7 +56,7 @@ SHA1 a613badc8901c744c6fa0777ec4071e37ca7f23d t/scripts/12-env.pl
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.7 (Darwin)
 
-iD8DBQFIoWz+sxfQtHhyRPoRAqoLAKCD3wGTo492k6mpGjMjbrxcSlwWFwCcD/u5
-reNvpEqpltTlm1HHjHKra4Q=
-=R1H5
+iD8DBQFJkK10sxfQtHhyRPoRAs8pAJsGoGwAo7GgZyNFSk6YBne5fhMpYwCeMwC/
+/3GxO/yeFyb6C8XGk/qRAFY=
+=/APc
 -----END PGP SIGNATURE-----

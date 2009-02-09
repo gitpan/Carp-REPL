@@ -24,6 +24,7 @@ requires:
   Devel::LexAlias: 0
   Devel::REPL: 0
   Devel::StackTrace::WithLexicals: 0
+  Lexical::Persistence: 0
   namespace::clean: 0
   perl: 5.6.0
-version: 0.13
+version: 0.14
