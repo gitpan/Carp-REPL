@@ -1,11 +1,8 @@
 package Carp::REPL;
 use strict;
 use warnings;
-use 5.6.0;
-our $VERSION = '0.14';
-
-use base 'Exporter';
-our @EXPORT_OK = 'repl';
+use 5.006000;
+our $VERSION = '0.15';
 
 our $noprofile = 0;
 our $bottom_frame = 0;
@@ -15,7 +12,28 @@ sub import {
     my $warn   = grep { $_ eq 'warn'     } @_;
     my $test   = grep { $_ eq 'test'     } @_;
     $noprofile = grep { $_ eq 'noprofile'} @_;
+    my $repl   = grep { $_ eq 'repl'     } @_;
 
+    if ($repl) {
+
+        require Sub::Exporter;
+        my $import_repl = Sub::Exporter::build_exporter(
+            {
+                exports    => ['repl'],
+                into_level => 1,
+            }
+        );
+
+        # get option of 'repl'
+        my $seen;
+        my ($maybe_option) = grep { $seen || $_ eq 'repl' && $seen++ } @_;
+
+        # now do the real 'repl' import
+        $import_repl->( __PACKAGE__, 'repl',
+            ref $maybe_option ? $maybe_option : ()
+        );
+    }
+    
     $SIG{__DIE__}  = \&repl unless $nodie;
     $SIG{__WARN__} = \&repl if $warn;
 
@@ -35,7 +53,9 @@ sub import {
 }
 
 sub repl {
-    warn @_, "\n"; # tell the user what blew up
+    my $quiet = @_ && !defined($_[0]);
+
+    warn @_, "\n" unless $quiet; # tell the user what blew up
 
     require Devel::REPL::Script;
 
@@ -50,7 +70,7 @@ sub repl {
 
     $repl->load_plugin('Carp::REPL');
 
-    warn $repl->stacktrace;
+    warn $repl->stacktrace unless $quiet;
 
     $runner->run;
 }
@@ -204,7 +224,7 @@ even difficult!) solution to this. Therefore it's a caveat and not a bug. :)
 
 =head1 SEE ALSO
 
-L<Devel::REPL>, L<Devel::ebug>
+L<Devel::REPL>, L<Devel::ebug>, L<Enbugger>, L<CGI::Inspect>
 
 =head1 AUTHOR
 
